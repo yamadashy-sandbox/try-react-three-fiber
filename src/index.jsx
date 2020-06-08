@@ -1,66 +1,82 @@
 import * as THREE from 'three'
 import ReactDOM from 'react-dom'
-import React, { useRef, useMemo, useState, useEffect } from 'react'
+import React, { Suspense, useCallback, useRef, useMemo } from 'react'
 import { Canvas, useFrame } from 'react-three-fiber'
-import niceColors from 'nice-color-palettes'
 import Effects from './Effects'
 import './styles.css'
 
-const tempObject = new THREE.Object3D()
-const tempColor = new THREE.Color()
-const colors = new Array(1000).fill().map(() => niceColors[17][Math.floor(Math.random() * 5)])
+function Swarm({ count, mouse }) {
+  const mesh = useRef()
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
-function Boxes() {
-  const [hovered, set] = useState()
-  const colorArray = useMemo(() => Float32Array.from(new Array(1000).fill().flatMap((_, i) => tempColor.set(colors[i]).toArray())), [])
-
-  const ref = useRef()
-  const previous = useRef()
-  useEffect(() => void (previous.current = hovered), [hovered])
+  const particles = useMemo(() => {
+    const temp = []
+    for (let i = 0; i < count; i++) {
+      const t = Math.random() * 100
+      const factor = 20 + Math.random() * 100
+      const speed = 0.01 + Math.random() / 200
+      const xFactor = -20 + Math.random() * 40
+      const yFactor = -20 + Math.random() * 40
+      const zFactor = -20 + Math.random() * 40
+      temp.push({ t, factor, speed, xFactor, yFactor, zFactor, mx: 0, my: 0 })
+    }
+    return temp
+  }, [count])
 
   useFrame(state => {
-    const time = state.clock.getElapsedTime()
-    ref.current.rotation.x = Math.sin(time / 4)
-    ref.current.rotation.y = Math.sin(time / 2)
-    let i = 0
-    for (let x = 0; x < 10; x++)
-      for (let y = 0; y < 10; y++)
-        for (let z = 0; z < 10; z++) {
-          const id = i++
-          tempObject.position.set(5 - x, 5 - y, 5 - z)
-          tempObject.rotation.y = Math.sin(x / 4 + time) + Math.sin(y / 4 + time) + Math.sin(z / 4 + time)
-          tempObject.rotation.z = tempObject.rotation.y * 2
-          if (hovered !== previous.current) {
-            tempColor.set(id === hovered ? 'white' : colors[id]).toArray(colorArray, id * 3)
-            ref.current.geometry.attributes.color.needsUpdate = true
-          }
-          const scale = id === hovered ? 2 : 1
-          tempObject.scale.set(scale, scale, scale)
-          tempObject.updateMatrix()
-          ref.current.setMatrixAt(id, tempObject.matrix)
-        }
-    ref.current.instanceMatrix.needsUpdate = true
+    particles.forEach((particle, i) => {
+      let { t, factor, speed, xFactor, yFactor, zFactor } = particle
+      t = particle.t += speed / 2
+      const a = Math.cos(t) + Math.sin(t * 1) / 10
+      const b = Math.sin(t) + Math.cos(t * 2) / 10
+      const s = Math.max(1.5, Math.cos(t) * 5)
+      particle.mx += (mouse.current[0] - particle.mx) * 0.02
+      particle.my += (-mouse.current[1] - particle.my) * 0.02
+      dummy.position.set(
+        (particle.mx / 10) * a + xFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 1) * factor) / 10,
+        (particle.my / 10) * b + yFactor + Math.sin((t / 10) * factor) + (Math.cos(t * 2) * factor) / 10,
+        (particle.my / 10) * b + zFactor + Math.cos((t / 10) * factor) + (Math.sin(t * 3) * factor) / 10
+      )
+      dummy.scale.set(s, s, s)
+      dummy.updateMatrix()
+      mesh.current.setMatrixAt(i, dummy.matrix)
+    })
+    mesh.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <instancedMesh ref={ref} args={[null, null, 1000]} onPointerMove={e => set(e.instanceId)} onPointerOut={e => set(undefined)}>
-      <boxBufferGeometry attach="geometry" args={[0.7, 0.7, 0.7]}>
-        <instancedBufferAttribute attachObject={['attributes', 'color']} args={[colorArray, 3]} />
-      </boxBufferGeometry>
-      <meshPhongMaterial attach="material" vertexColors={THREE.VertexColors} />
-    </instancedMesh>
+    <>
+      <instancedMesh ref={mesh} args={[null, null, count]}>
+        <sphereBufferGeometry attach="geometry" args={[1, 32, 32]} />
+        <meshPhongMaterial attach="material" color="white" />
+      </instancedMesh>
+    </>
   )
 }
 
-ReactDOM.render(
-  <Canvas
-    gl={{ antialias: false, alpha: false }}
-    camera={{ position: [0, 0, 15], near: 5, far: 20 }}
-    onCreated={({ gl }) => gl.setClearColor('lightpink')}>
-    <ambientLight />
-    <pointLight position={[150, 150, 150]} intensity={0.55} />
-    <Boxes />
-    <Effects />
-  </Canvas>,
-  document.getElementById('root')
-)
+function App() {
+  const mouse = useRef([0, 0])
+  const onMouseMove = useCallback(({ clientX: x, clientY: y }) => (mouse.current = [x - window.innerWidth / 2, y - window.innerHeight / 2]), [])
+  return (
+    <div style={{ width: '100%', height: '100%' }} onMouseMove={onMouseMove}>
+      <Canvas
+        gl={{ alpha: false, antialias: false, logarithmicDepthBuffer: true }}
+        camera={{ fov: 75, position: [0, 0, 70] }}
+        onCreated={({ gl }) => {
+          gl.setClearColor('white')
+          gl.toneMapping = THREE.ACESFilmicToneMapping
+          gl.outputEncoding = THREE.sRGBEncoding
+        }}>
+        <ambientLight intensity={1.1} />
+        <pointLight position={[100, 100, 100]} intensity={2.2} />
+        <pointLight position={[-100, -100, -100]} intensity={5} color="red" />
+        <Swarm mouse={mouse} count={150} />
+        <Suspense fallback={null}>
+          <Effects />
+        </Suspense>
+      </Canvas>
+    </div>
+  )
+}
+
+ReactDOM.render(<App />, document.getElementById('root'))

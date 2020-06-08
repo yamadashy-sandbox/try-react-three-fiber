@@ -1,18 +1,21 @@
 {
-    "name": "r3f-instanced-colors",
+    "name": "r3f-gamma-correction",
     "version": "1.0.0",
     "description": "",
     "keywords": [],
     "main": "src/index.js",
+    "homepage" : "https://yamadashy-sandbox.github.io/try-react-three-fiber",
     "dependencies": {
-        "nice-color-palettes": "3.0.0",
-        "react": "16.13.1",
-        "react-dom": "16.13.1",
-        "react-scripts": "3.4.1",
-        "react-three-fiber": "4.1.1",
-        "three": "0.115.0"
+        "postprocessing": "6.10.0",
+        "react": "16.12.0",
+        "react-dom": "16.12.0",
+        "react-scripts": "3.3.0",
+        "react-three-fiber": "4.0.11",
+        "three": "0.112.1"
     },
-    "devDependencies": {},
+    "devDependencies": {
+        "typescript": "3.3.3"
+    },
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",

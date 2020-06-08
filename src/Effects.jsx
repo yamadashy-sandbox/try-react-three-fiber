@@ -1,32 +1,42 @@
-import * as THREE from 'three'
-import React, { useRef, useEffect, useMemo } from 'react'
-import { extend, useThree, useFrame } from 'react-three-fiber'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader'
+import { useMemo, useEffect } from 'react'
+import { useLoader, useThree, useFrame } from 'react-three-fiber'
+import { SMAAImageLoader, BlendFunction, EffectComposer, EffectPass, RenderPass, SMAAEffect, SSAOEffect, NormalPass } from 'postprocessing'
 
-extend({ EffectComposer, ShaderPass, RenderPass, SSAOPass, UnrealBloomPass })
+// Fix smaa loader signature
+const _load = SMAAImageLoader.prototype.load
+SMAAImageLoader.prototype.load = function(_, set) {
+  return _load.bind(this)(set)
+}
 
-export default function Effects() {
-  const composer = useRef()
-  const { scene, gl, size, camera } = useThree()
-  const aspect = useMemo(() => new THREE.Vector2(size.width, size.height), [size])
-  useEffect(() => void composer.current.setSize(size.width, size.height), [size])
-  useFrame(() => composer.current.render(), 2)
-  return (
-    <effectComposer ref={composer} args={[gl]}>
-      <renderPass attachArray="passes" scene={scene} camera={camera} />
-      <sSAOPass attachArray="passes" args={[scene, camera]} kernelRadius={0.6} maxDistance={0.03} />
-      <unrealBloomPass attachArray="passes" args={[aspect, 2, 1, 0.991]} />
-      <shaderPass
-        attachArray="passes"
-        args={[FXAAShader]}
-        material-uniforms-resolution-value={[1 / size.width, 1 / size.height]}
-        renderToScreen
-      />
-    </effectComposer>
-  )
+export default function Post() {
+  const { gl, scene, camera, size } = useThree()
+  const smaa = useLoader(SMAAImageLoader)
+  const composer = useMemo(() => {
+    const composer = new EffectComposer(gl)
+    composer.addPass(new RenderPass(scene, camera))
+    const smaaEffect = new SMAAEffect(...smaa)
+    smaaEffect.colorEdgesMaterial.setEdgeDetectionThreshold(0.1)
+    const normalPass = new NormalPass(scene, camera)
+    const ssaoEffect = new SSAOEffect(camera, normalPass.renderTarget.texture, {
+      blendFunction: BlendFunction.MULTIPLY,
+      samples: 30,
+      rings: 4,
+      distanceThreshold: 1, // Render distance depends on camera near&far.
+      distanceFalloff: 0.0, // No need for falloff.
+      rangeThreshold: 0.05, // Larger value works better for this camera frustum.
+      rangeFalloff: 0.01,
+      luminanceInfluence: 0.6,
+      radius: 30,
+      scale: 0.55,
+      bias: 0.5
+    })
+    const effectPass = new EffectPass(camera, smaaEffect, ssaoEffect)
+    effectPass.renderToScreen = true
+    composer.addPass(normalPass)
+    composer.addPass(effectPass)
+    return composer
+  }, [])
+
+  useEffect(() => void composer.setSize(size.width, size.height), [size])
+  return useFrame((_, delta) => composer.render(delta), 1)
 }
