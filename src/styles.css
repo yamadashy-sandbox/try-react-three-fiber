@@ -9,6 +9,7 @@ body,
     height: 100%;
     margin: 0;
     padding: 0;
+    background-color: #272727;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -18,15 +19,28 @@ body,
     overflow: hidden;
 }
 
-#root {
-    overflow: auto;
-}
-
 body {
     position: fixed;
     overflow: hidden;
     overscroll-behavior-y: none;
-    font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial,
+    sans-serif;
     color: black;
-    background: white;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 2em;
+    transform: translate3d(-50%, -50%, 0);
 }
