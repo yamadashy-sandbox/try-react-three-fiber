@@ -34,8 +34,10 @@ const objMtlResource = createResource(filePath => {
   });
 });
 
-function ObjMtlModel({ filePath }) {
+function ObjMtlModel({ filePath, scale, position }) {
   const { scene } = objMtlResource.read(filePath)
+  scene.scale.set(scale[0], scale[1], scale[2]);
+  scene.position.set(position.x, position.y, position.z);
   return <primitive object={scene} />
 }
 
@@ -56,14 +58,23 @@ function Controls(props) {
 }
 
 function App() {
-  const [clicked, set] = useState(true)
   return (
     <>
-      <Canvas camera={{ position: [5, 3, 6] }}>
+      <Canvas camera={{ position: [15, 9, 18] }} colorManagement style={{ background: '#a3cfff' }} shadowMap={{ enabled: true, type: THREE.PCFShadowMap }}>
         <Controls enableDamping enablePan={false} dampingFactor={0.1} rotateSpeed={0.1} maxPolarAngle={Math.PI / 2} />
         <ambientLight intensity={0.5} />
-        <spotLight intensity={0.8} position={[300, 300, 400]} />
-        <Suspense fallback={<Box />}>{clicked && <ObjMtlModel filePath='./assets/mushi' />}</Suspense>
+        <directionalLight
+          position={[10, 10, -10]}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-near={0.01}
+          shadow-camera-far={500}
+          castShadow
+        />
+        <Suspense fallback={<Box />}>
+          <ObjMtlModel filePath='./assets/mushi' scale={[0.3, 0.3, 0.3]} position={{x: 0, y: 0, z: 0}} />
+          <ObjMtlModel filePath='./assets/field-flat' scale={[1, 1, 1]} position={{x: 0, y: -1, z: 0}} />
+        </Suspense>
       </Canvas>
     </>
   )
