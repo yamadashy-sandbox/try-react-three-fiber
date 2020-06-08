@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/try-react-three-fiber/static/css/main.20bbf616.chunk.css",
+    "main.js": "/try-react-three-fiber/static/js/main.a511d1dc.chunk.js",
+    "main.js.map": "/try-react-three-fiber/static/js/main.a511d1dc.chunk.js.map",
+    "runtime-main.js": "/try-react-three-fiber/static/js/runtime-main.da50408f.js",
+    "runtime-main.js.map": "/try-react-three-fiber/static/js/runtime-main.da50408f.js.map",
+    "static/js/2.4cea270f.chunk.js": "/try-react-three-fiber/static/js/2.4cea270f.chunk.js",
+    "static/js/2.4cea270f.chunk.js.map": "/try-react-three-fiber/static/js/2.4cea270f.chunk.js.map",
+    "index.html": "/try-react-three-fiber/index.html",
+    "precache-manifest.fc410dc5672001706746a8787407988c.js": "/try-react-three-fiber/precache-manifest.fc410dc5672001706746a8787407988c.js",
+    "service-worker.js": "/try-react-three-fiber/service-worker.js",
+    "static/css/main.20bbf616.chunk.css.map": "/try-react-three-fiber/static/css/main.20bbf616.chunk.css.map",
+    "static/js/2.4cea270f.chunk.js.LICENSE": "/try-react-three-fiber/static/js/2.4cea270f.chunk.js.LICENSE"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.da50408f.js",
+    "static/js/2.4cea270f.chunk.js",
+    "static/css/main.20bbf616.chunk.css",
+    "static/js/main.a511d1dc.chunk.js"
+  ]
+}
