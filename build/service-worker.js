@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/try-react-three-fiber/precache-manifest.5d17c97bd431cb46e0c21afb60a1b0fa.js"
+  "/try-react-three-fiber/precache-manifest.0155409893ca9622a76497088ccce033.js"
 );
 
 workbox.clientsClaim();
